@@ -20,7 +20,6 @@ public class AcoTsp {
      * ################################################
      * ########## ACO algorithms for the TSP ##########
      * ################################################
-     * 
      * Version: 1.0
      * File: main.c
      * Author: Thomas Stuetzle
