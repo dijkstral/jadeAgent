@@ -43,7 +43,6 @@ public class AcoTsp {
     {
     	int k;
 		int step; /* counter of the number of construction steps */
-
 	
 		step = 0;
 		/* Place the ants on same initial city */
@@ -65,8 +64,10 @@ public class AcoTsp {
 		    Ants.ant[k].tour[Tsp.n] = Ants.ant[k].tour[0];
 		    Ants.ant[k].tour_length = Tsp.compute_tour_length(Ants.ant[k].tour);
 		    if (Ants.acs_flag)
-			Ants.local_acs_pheromone_update(Ants.ant[k], step);
-		}		
+		    	Ants.local_acs_pheromone_update(Ants.ant[k], step);
+		}
+		
+		InOut.n_tours += Ants.n_ants;
     }
     
 
@@ -109,7 +110,7 @@ public class AcoTsp {
 		    Ants.ant[k].tour[Tsp.n] = Ants.ant[k].tour[0];
 		    Ants.ant[k].tour_length = Tsp.compute_tour_length(Ants.ant[k].tour);
 		    if (Ants.acs_flag)
-			Ants.local_acs_pheromone_update(Ants.ant[k], step);
+		    	Ants.local_acs_pheromone_update(Ants.ant[k], step);
 		}
 		InOut.n_tours += Ants.n_ants;
     }

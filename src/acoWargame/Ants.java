@@ -13,7 +13,7 @@ public class Ants {
     static class ant_struct 
     {
 		int[] tour;
-		boolean[] visited;
+		boolean[] visited;//禁忌表，显示城市是否被访问了
 		int tour_length;
     }
     
@@ -24,7 +24,7 @@ public class Ants {
     	double value;
     }
     
-    public static int targets_wargame;
+    public static int targets_wargame;//假定敌方目标数量
 
     public static final int MAX_ANTS = 1024;
     public static final int MAX_NEIGHBOURS = 512;
@@ -36,29 +36,29 @@ public class Ants {
     static ant_struct_wargame ant_wargame[];//蚂蚁存放
 
     static double pheromone[][];//设置二维数组，存放生物素，数组大小为城市数目x城市数目
-    static double total[][];
+    static double total[][];//
     
     static double sumPoint = 0;//计算总共的点值--liuzhuan
 
     static double prob_of_selection[];
 
-    static int n_ants; /* number of ants */
+    static int n_ants; //蚂蚁数量
     static int nn_ants; /*
 			 * length of nearest neighbor lists for the ants'
 			 * solution construction
 			 */
 
-    static double rho; /* parameter for evaporation */
+    static double rho; /* parameter for evaporation 生物素蒸发参数r*/
     static double alpha; /* importance of trail */
-    static double beta; /* importance of heuristic evaluate */
+    static double beta; /* importance of heuristic evaluate 启发参数*/
     static double q_0; /* probability of best choice in tour construction */
 
-    static boolean as_flag; /* ant system */
-    static boolean eas_flag; /* elitist ant system */
-    static boolean ras_flag; /* rank-based version of ant system */
-    static boolean mmas_flag; /* MAX-MIN ant system */
-    static boolean bwas_flag; /* best-worst ant system */
-    static boolean acs_flag; /* ant colony system */
+    static boolean as_flag; /* ant system 普通蚁群系统*/
+    static boolean eas_flag; /* elitist ant system 精英蚁群系统*/
+    static boolean ras_flag; /* rank-based version of ant system 分等级的蚁群系统*/
+    static boolean mmas_flag; /* MAX-MIN ant system 最大最小蚂蚁系统*/
+    static boolean bwas_flag; /* best-worst ant system 最好最差蚁群系统*/
+    static boolean acs_flag; /* ant colony system 蚁群聚类系统*/
 
     static int elitist_ants; /*
 			      * additional parameter for elitist
@@ -167,6 +167,7 @@ public class Ants {
 
     static int find_best()
     /*
+     * 找到目前为止历程最小的蚂蚁，作为最优结果，返回其id号
      * FUNCTION: find the best ant of the current iteration
      * INPUT: none
      * OUTPUT: index of struct containing the iteration best ant
@@ -253,8 +254,9 @@ public class Ants {
     }
 
 
-    static void evaporation()//生物素蒸发
+    static void evaporation()
     /*
+     * 生物素蒸发 
      * FUNCTION: implements the pheromone trail evaporation
      * INPUT: none
      * OUTPUT: none
