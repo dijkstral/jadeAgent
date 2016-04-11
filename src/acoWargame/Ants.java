@@ -76,7 +76,12 @@ public class Ants {
 
     static double trail_0; /* initial pheromone level in ACS and BWAS */
 
-    static double HEURISTIC(int m, int n) 
+    static double HEURISTIC(int m, int n) //启发函数
+    {
+    	return (1.0 / ((double) Tsp.instance.distance[m][n] + 0.1));
+    }
+    
+    static double HEURISTIC_wargame(int m, int n) //兵棋启发函数
     {
     	return (1.0 / ((double) Tsp.instance.distance[m][n] + 0.1));
     }
@@ -117,7 +122,8 @@ public class Ants {
 	
 		ant = new ant_struct[n_ants];
 	
-		for (i = 0; i < n_ants; i++) {
+		for (i = 0; i < n_ants; i++) 
+		{
 		    ant[i] = new ant_struct();
 		    ant[i].tour = new int[Tsp.n + 1];
 		    ant[i].visited = new boolean[Tsp.n];
@@ -294,7 +300,8 @@ public class Ants {
 		{
 		    for (j = 0; j < nn_ants; j++) 
 		    {
-		    	help_city = Tsp.instance.nn_list[i][j];
+		    	help_city = Tsp.instance.nn_list[i][j];//？？？？
+		    	
 		    	pheromone[i][help_city] = (1 - rho) * pheromone[i][help_city];
 		    }
 		}
@@ -302,6 +309,7 @@ public class Ants {
 
     static void global_update_pheromone(ant_struct a)
     /*
+     * 对由j到h的生物素进行更新，更新增加的大小与tour_length成反比
      * FUNCTION: reinforces edges used in ant k's solution
      * INPUT: pointer to ant that updates the pheromone trail
      * OUTPUT: none
@@ -438,6 +446,7 @@ public class Ants {
     
     static void choose_best_next(ant_struct a, int phase)
     /*
+     * 选择与目前城市最大生物素的城市移动
      * FUNCTION: chooses for an ant as the next city the one with
      * maximal value of heuristic information times pheromone
      * INPUT: pointer to ant and the construction step
@@ -458,6 +467,7 @@ public class Ants {
 		    	; /* city already visited, do nothing */
 		    else
 		    {
+		    	/*找到最大生物素，以及对应的城市*/
 				if (total[current_city][city] > value_best) 
 				{
 				    next_city = city;
@@ -468,12 +478,14 @@ public class Ants {
 		assert (0 <= next_city && next_city < Tsp.n);
 		assert (value_best > 0.0);
 		assert (a.visited[next_city] == false);
+		/*移动到下一个城市*/
 		a.tour[phase] = next_city;
 		a.visited[next_city] = true;
     }
 
     static void neighbour_choose_best_next(ant_struct a, int phase)
     /*
+     * 选择与目前城市最近的neighbour节点的最大生物素的城市移动
      * FUNCTION: chooses for an ant as the next city the one with
      * maximal value of heuristic information times pheromone
      * INPUT: pointer to ant and the construction step "phase"
@@ -518,6 +530,7 @@ public class Ants {
 
     static void choose_closest_next(ant_struct a, int phase)
     /*
+     * 选择距离目前城市最近的下一个城市移动
      * FUNCTION: Chooses for an ant the closest city as the next one
      * INPUT: pointer to ant and the construction step "phase"
      * OUTPUT: none
@@ -570,6 +583,7 @@ public class Ants {
 		if ((q_0 > 0.0) && (Utilities.ran01(Utilities.seed) < q_0)) 
 		{
 		    /*
+		     * 存在一定可能性，正好当前的路径既是最佳的路径
 		     * with a probability q_0 make the best possible choice
 		     * according to pheromone trails and heuristic information
 		     */
@@ -582,7 +596,8 @@ public class Ants {
 		    return;
 		}
 	
-		prob_ptr = prob_of_selection;
+		/*如果当前的路径不是最佳的路径*/
+		prob_ptr = prob_of_selection;//根据生物素的计算结果，选择最佳的下一步移动目标
 	
 		current_city = a.tour[phase - 1]; /* current_city city of ant k */
 		assert (current_city >= 0 && current_city < Tsp.n);
@@ -640,6 +655,10 @@ public class Ants {
 
     static void neighbour_choose_and_move_to_next_wargame(ant_struct_wargame a)//--liuzhuan
     {
+    	/*
+    	 * 第一步，
+    	 * 
+    	 * */
     	Random tempRandom = new Random();
     	int bestAnt = find_best_wargame();
     	for(int i = 0; i<n_ants; i++)
@@ -765,23 +784,24 @@ public class Ants {
      * (SIDE)EFFECTS: pheromones of arcs in ant k's tour are increased
      */
     {
-	int i, j, h;
-	double d_tau;
-
-	// TRACE ( System.out.println("acs specific: global pheromone update\n"); );
-
-	d_tau = 1.0 / (double) a.tour_length;
-
-	for (i = 0; i < Tsp.n; i++) {
-	    j = a.tour[i];
-	    h = a.tour[i + 1];
-
-	    pheromone[j][h] = (1. - rho) * pheromone[j][h] + rho * d_tau;
-	    pheromone[h][j] = pheromone[j][h];
-
-	    total[h][j] = Math.pow(pheromone[h][j], alpha) * Math.pow(HEURISTIC(h, j), beta);
-	    total[j][h] = total[h][j];
-	}
+		int i, j, h;
+		double d_tau;
+	
+		// TRACE ( System.out.println("acs specific: global pheromone update\n"); );
+	
+		d_tau = 1.0 / (double) a.tour_length;
+	
+		for (i = 0; i < Tsp.n; i++) 
+		{
+		    j = a.tour[i];
+		    h = a.tour[i + 1];
+	
+		    pheromone[j][h] = (1. - rho) * pheromone[j][h] + rho * d_tau;
+		    pheromone[h][j] = pheromone[j][h];
+	
+		    total[h][j] = Math.pow(pheromone[h][j], alpha) * Math.pow(HEURISTIC(h, j), beta);
+		    total[j][h] = total[h][j];
+		}
     }
     
     
@@ -988,7 +1008,7 @@ public class Ants {
 		}
 		InOut.n_tours += 1;
 		/* copy_from_to( &ant[0], best_so_far_ant ); */
-		ant[0].tour_length = Tsp.compute_tour_length(ant[0].tour);
+		ant[0].tour_length = Tsp.compute_tour_length(ant[0].tour);//????
 	
 		help = ant[0].tour_length;
 		ant_empty_memory(ant[0]);

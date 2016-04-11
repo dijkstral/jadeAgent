@@ -15,6 +15,7 @@ import java.util.HashMap;
 import java.util.Map;
 
 import acoWargame.Tsp.problem;
+import acoWargame.Tsp.problem_wargame;
 
 
 public class InOut {
@@ -78,116 +79,116 @@ public class InOut {
      * COMMENTS: Instance files have to be in TSPLIB format, otherwise procedure fails
      */
     {
-	String buf;
-	int i;
-	Tsp.point[] nodeptr = null;
-
-	if (tsp_file_name == null) {
-	    System.err.println("No instance file specified, abort");
-	    System.exit(1);
-	}
-
-	if (!new File(tsp_file_name).canRead()) {
-	    System.err.println("Can not read file " + tsp_file_name);
-	    System.exit(1);
-	}
-
-	System.out.println("\nreading tsp-file " + tsp_file_name + " ... ");
-
-	i = 0;
-	boolean found_coord_section = false;
-	Reader reader = new InputStreamReader(new FileInputStream(tsp_file_name), "UTF8");
-	BufferedReader bufferedReader = new BufferedReader(reader);
-	String line = bufferedReader.readLine();
-	while (line != null)
-	{
-	    if (line.startsWith("EOF"))
-	    {
-	    	break;
-	    }
-
-	    if (!found_coord_section) 
-	    {
-	    	if (line.startsWith("NAME")) 
-	    	{
-	    		Tsp.instance.name = line.split(":")[1].trim();
-	    	}
-	    	else if (line.startsWith("COMMENT")) 
-	    	{
-			
-	    	} 
-	    	else if (line.startsWith("TYPE") && !line.contains("TSP")) 
-	    	{
-	    		System.err.println("Not a TSP Tsp.instance in TSPLIB format !!");
-	    		System.exit(1);
-	    	}
-	    	else if (line.startsWith("DIMENSION")) 
-	    	{
-	    		Tsp.n = Integer.parseInt(line.split(":")[1].trim());
-	    		Tsp.instance.n = Tsp.n;
-	    		nodeptr = new Tsp.point[Tsp.n];
-	    		assert (Tsp.n > 2 && Tsp.n < 6000);
-	    	} 
-	    	else if (line.startsWith("DISPLAY_DATA_TYPE")) 
-	    	{
-	    		
-	    	} 
-	    	else if (line.startsWith("EDGE_WEIGHT_TYPE")) 
-	    	{
-	    		buf = line.split(":")[1].trim();
-	    		if (buf.equals("EUC_2D"))
-	    		{
-	    			distance_type = Distance_type.EUC_2D;
-	    		} 
-	    		else if (buf.equals("CEIL_2D")) 
-	    		{
-	    			distance_type = Distance_type.CEIL_2D;
-	    		} 
-	    		else if (buf.equals("GEO")) 
-	    		{
-	    			distance_type = Distance_type.GEO;
-	    		} 
-	    		else if (buf.equals("ATT"))
-	    		{
-	    			distance_type = Distance_type.ATT;
-	    		} 
-	    		else 
-	    		{
-	    			System.err.println("EDGE_WEIGHT_TYPE " + buf + " not implemented");
-	    			System.exit(1);
-	    		}
-	    	}
-	    }
-	    else 
-	    {
-	    	String[] city_info = line.split(" ");
-	    	nodeptr[i] = new Tsp.point();
-	    	nodeptr[i].x = Double.parseDouble(city_info[1]);
-	    	nodeptr[i].y = Double.parseDouble(city_info[2]);
-	    	i++;
-	    }
-
-	    if (line.startsWith("NODE_COORD_SECTION")) 
-	    {
-	    	found_coord_section = true;
-	    }
-
-	    line = bufferedReader.readLine();
-	}
-
-	if (!found_coord_section) 
-	{
-	    System.err.println("Some error ocurred finding start of coordinates from tsp file !!");
-	    System.exit(1);
-	}
-
-	bufferedReader.close();
-
-	// TRACE ( System.out.println("number of cities is %ld\n",Tsp.n); )
-	// TRACE ( System.out.println("\n... done\n"); )
-	System.out.println();
-
-	return (nodeptr);
+		String buf;
+		int i;
+		Tsp.point[] nodeptr = null;
+	
+		if (tsp_file_name == null) {
+		    System.err.println("No instance file specified, abort");
+		    System.exit(1);
+		}
+	
+		if (!new File(tsp_file_name).canRead()) {
+		    System.err.println("Can not read file " + tsp_file_name);
+		    System.exit(1);
+		}
+	
+		System.out.println("\nreading tsp-file " + tsp_file_name + " ... ");
+	
+		i = 0;
+		boolean found_coord_section = false;
+		Reader reader = new InputStreamReader(new FileInputStream(tsp_file_name), "UTF8");
+		BufferedReader bufferedReader = new BufferedReader(reader);
+		String line = bufferedReader.readLine();
+		while (line != null)
+		{
+		    if (line.startsWith("EOF"))
+		    {
+		    	break;
+		    }
+	
+		    if (!found_coord_section) 
+		    {
+		    	if (line.startsWith("NAME")) 
+		    	{
+		    		Tsp.instance.name = line.split(":")[1].trim();
+		    	}
+		    	else if (line.startsWith("COMMENT")) 
+		    	{
+				
+		    	} 
+		    	else if (line.startsWith("TYPE") && !line.contains("TSP")) 
+		    	{
+		    		System.err.println("Not a TSP Tsp.instance in TSPLIB format !!");
+		    		System.exit(1);
+		    	}
+		    	else if (line.startsWith("DIMENSION")) 
+		    	{
+		    		Tsp.n = Integer.parseInt(line.split(":")[1].trim());
+		    		Tsp.instance.n = Tsp.n;
+		    		nodeptr = new Tsp.point[Tsp.n];
+		    		assert (Tsp.n > 2 && Tsp.n < 6000);
+		    	} 
+		    	else if (line.startsWith("DISPLAY_DATA_TYPE")) 
+		    	{
+		    		
+		    	} 
+		    	else if (line.startsWith("EDGE_WEIGHT_TYPE")) 
+		    	{
+		    		buf = line.split(":")[1].trim();
+		    		if (buf.equals("EUC_2D"))
+		    		{
+		    			distance_type = Distance_type.EUC_2D;
+		    		} 
+		    		else if (buf.equals("CEIL_2D")) 
+		    		{
+		    			distance_type = Distance_type.CEIL_2D;
+		    		} 
+		    		else if (buf.equals("GEO")) 
+		    		{
+		    			distance_type = Distance_type.GEO;
+		    		} 
+		    		else if (buf.equals("ATT"))
+		    		{
+		    			distance_type = Distance_type.ATT;
+		    		} 
+		    		else 
+		    		{
+		    			System.err.println("EDGE_WEIGHT_TYPE " + buf + " not implemented");
+		    			System.exit(1);
+		    		}
+		    	}
+		    }
+		    else 
+		    {
+		    	String[] city_info = line.split(" ");
+		    	nodeptr[i] = new Tsp.point();
+		    	nodeptr[i].x = Double.parseDouble(city_info[1]);
+		    	nodeptr[i].y = Double.parseDouble(city_info[2]);
+		    	i++;
+		    }
+	
+		    if (line.startsWith("NODE_COORD_SECTION")) 
+		    {
+		    	found_coord_section = true;
+		    }
+	
+		    line = bufferedReader.readLine();
+		}
+	
+		if (!found_coord_section) 
+		{
+		    System.err.println("Some error ocurred finding start of coordinates from tsp file !!");
+		    System.exit(1);
+		}
+	
+		bufferedReader.close();
+	
+		// TRACE ( System.out.println("number of cities is %ld\n",Tsp.n); )
+		// TRACE ( System.out.println("\n... done\n"); )
+		System.out.println();
+	
+		return (nodeptr);
     }
 
     static void write_report()
@@ -338,6 +339,41 @@ public class InOut {
 	    Ants.elitist_ants = Ants.n_ants;
 	}
     }
+    
+    static void set_default_parameters_wargame()//--liuzhuan
+    /*
+     * FUNCTION: set default parameter settings
+     * INPUT: none
+     * OUTPUT: none
+     * COMMENTS: none
+     */
+    {
+		LocalSearch.ls_flag = 3; /* per default run 3-opt */
+		LocalSearch.dlb_flag = true; /* apply don't look bits in local search */
+		LocalSearch.nn_ls = 20; /* use fixed radius search in the 20 nearest neighbours */
+		Ants.n_ants = 25; /* number of ants */
+		Ants.nn_ants = 20; /* number of nearest neighbours in tour construction */
+		Ants.alpha = 1.0;
+		Ants.beta = 2.0;
+		Ants.rho = 0.5;
+		Ants.q_0 = 0.0;
+		max_tries = 10;
+		max_tours = 0;
+		Utilities.seed = (int) System.currentTimeMillis();
+		max_time = 100000000000.0;//方便debug时调试--liuzhuan
+		optimal = 1;
+		branch_fac = 1.00001;
+		Ants.u_gb = Integer.MAX_VALUE;
+		Ants.as_flag = false;
+		Ants.eas_flag = false;
+		Ants.ras_flag = false;
+		Ants.mmas_flag = true;
+		Ants.bwas_flag = false;
+		Ants.acs_flag = false;
+		Ants.ras_ranks = 0;
+		Ants.elitist_ants = 0;
+    }
+    
 
     static void set_default_parameters()
     /*
@@ -560,6 +596,102 @@ public class InOut {
 	    }
 	}
     }
+    
+    static void init_program_wargame(String[] args)//--liuzhuan
+    {
+		Tsp.instance_wargame = new problem_wargame();
+	
+		String temp_buffer;
+	
+		System.out.println(InOut.PROG_ID_STR);
+		set_default_parameters_wargame();//设置默认参数
+		Parse.parse_commandline(args);//对相关参数进行解析后设置
+	
+		assert (max_tries <= Utilities.MAXIMUM_NO_TRIES);
+	
+		best_in_try = new int[max_tries];
+		best_found_at = new int[max_tries];
+		time_best_found = new double[max_tries];
+		time_total_run = new double[max_tries];
+	
+		aw_best_tour_in_try = new String[max_tries];
+	
+		// TRACE ( System.out.println("read problem data  ..\n\n"); )
+	
+		try 
+		{
+			Tsp.instance.nodeptr = read_etsp(name_buf);
+		} 
+		catch (IOException e) 
+		{
+		    System.err.println("Could not read input file. " + e.getMessage());
+		    System.exit(1);
+		}
+	
+		// TRACE ( System.out.println("\n .. done\n\n"); )
+	
+		if (Ants.n_ants < 0)
+		    Ants.n_ants = Tsp.n;//设置蚂蚁数量
+		/*
+		 * default setting for Ants.elitist_ants is 0; if EAS is applied and
+		 * option Ants.elitist_ants is not used, we set the default to
+		 * Ants.elitist_ants = n
+		 */
+		if (Ants.eas_flag && Ants.elitist_ants <= 0)
+		    Ants.elitist_ants = Tsp.n;
+	
+		LocalSearch.nn_ls = Math.min(Tsp.n - 1, LocalSearch.nn_ls);
+	
+		assert (Ants.n_ants < Ants.MAX_ANTS - 1);
+		assert (Ants.nn_ants < Ants.MAX_NEIGHBOURS);
+		assert (Ants.nn_ants > 0);
+		assert (LocalSearch.nn_ls > 0);
+	
+		if (!quiet_flag) 
+		{
+		    Writer w;
+		    try 
+		    {
+			temp_buffer = "best." + Tsp.instance.name;
+			// // TRACE ( System.out.println("%s\n",temp_buffer); )
+			report = new File(temp_buffer);
+			w = new OutputStreamWriter(new FileOutputStream(temp_buffer), "UTF8");
+			writer.put(report.getName(), new BufferedWriter(w));
+	
+			temp_buffer = "cmp." + Tsp.instance.name;
+			// // TRACE ( System.out.println("%s\n",temp_buffer); )
+			comp_report = new File(temp_buffer);
+			w = new OutputStreamWriter(new FileOutputStream(temp_buffer), "UTF8");
+			writer.put(comp_report.getName(), new BufferedWriter(w));
+	
+			temp_buffer = "stat." + Tsp.instance.name;
+			// // TRACE ( System.out.println("%s\n",temp_buffer); )
+			stat_report = new File(temp_buffer);
+			w = new OutputStreamWriter(new FileOutputStream(temp_buffer), "UTF8");
+			writer.put(stat_report.getName(), new BufferedWriter(w));
+		    } catch (IOException e) {
+			System.err.println("Could not write file. " + e.getMessage());
+			System.exit(1);
+		    }
+		} else {
+		    report = null;
+		    comp_report = null;
+		    stat_report = null;
+		}
+	
+		System.out.println("calculating distance matrix ..");
+		Tsp.instance.distance = Tsp.compute_distances();
+		System.out.println(" .. done\n");
+		write_params();
+	
+		if (comp_report != null)
+		    printToFile(comp_report, "begin problem " + name_buf);
+		System.out.println("allocate ants' memory ..");
+		//Ants.allocate_ants();
+		Ants.allocate_ants_wargame();
+		System.out.println(" .. done\n");
+    }
+    
 
     static void init_program(String[] args)
     /*

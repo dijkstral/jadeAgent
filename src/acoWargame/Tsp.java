@@ -29,7 +29,7 @@ public class Tsp {
     static class problem 
     {
 		String name; /* instance name */
-		String edge_weight_type; /* selfexplanatory */
+		String edge_weight_type; /* self explanatory */
 		int optimum; /* optimal tour length if known, otherwise a bound */
 		int n; /* number of cities */
 		int n_near; /* number of nearest neighbors */
@@ -37,10 +37,25 @@ public class Tsp {
 		int[][] distance; /* distance matrix: distance[i][j] gives distance */
 		int[][] nn_list; /* nearest neighbor list; contains for each node i a sorted list of n_near nearest neighbors */
 	}
+    
+    static class problem_wargame
+    {
+		String name; /* instance name */
+		//String edge_weight_type; /* self explanatory */
+		//int optimum; /* optimal tour length if known, otherwise a bound */
+		//int n; /* number of cities */
+		//int n_near; /* number of nearest neighbors */
+		//point[] nodeptr; /* array of structs containing coordinates of nodes */
+		//int[][] distance; /* distance matrix: distance[i][j] gives distance */
+		//int[][] nn_list; 
+		int nTargets;	//目标数量
+		
+    }
 
     static int n; /* number of cities in the instance to be solved */
 
     static problem instance;
+    static problem_wargame instance_wargame;//liuzhuan
 
     static double dtrunc(double x) 
     {

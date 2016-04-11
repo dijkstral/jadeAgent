@@ -246,18 +246,22 @@ public class AcoTsp {
 		    InOut.restart_found_best = InOut.iteration;
 		    InOut.found_branching = InOut.node_branching(InOut.lambda);
 		    InOut.branching_factor = InOut.found_branching;
-		    if (Ants.mmas_flag) {
-			if (LocalSearch.ls_flag == 0) {
-			    p_x = Math.exp(Math.log(0.05) / Tsp.n);
-			    Ants.trail_min = 1. * (1. - p_x) / (p_x * (double) ((Ants.nn_ants + 1) / 2));
-			    Ants.trail_max = 1. / ((Ants.rho) * Ants.best_so_far_ant.tour_length);
-			    Ants.trail_0 = Ants.trail_max;
-			    Ants.trail_min = Ants.trail_max * Ants.trail_min;
-			} else {
-			    Ants.trail_max = 1. / ((Ants.rho) * Ants.best_so_far_ant.tour_length);
-			    Ants.trail_min = Ants.trail_max / (2. * Tsp.n);
-			    Ants.trail_0 = Ants.trail_max;
-			}
+		    if (Ants.mmas_flag) 
+		    {
+				if (LocalSearch.ls_flag == 0) 
+				{
+				    p_x = Math.exp(Math.log(0.05) / Tsp.n);
+				    Ants.trail_min = 1. * (1. - p_x) / (p_x * (double) ((Ants.nn_ants + 1) / 2));
+				    Ants.trail_max = 1. / ((Ants.rho) * Ants.best_so_far_ant.tour_length);
+				    Ants.trail_0 = Ants.trail_max;
+				    Ants.trail_min = Ants.trail_max * Ants.trail_min;
+				} 
+				else 
+				{
+				    Ants.trail_max = 1. / ((Ants.rho) * Ants.best_so_far_ant.tour_length);
+				    Ants.trail_min = Ants.trail_max / (2. * Tsp.n);
+				    Ants.trail_0 = Ants.trail_max;
+				}
 		    }
 		    InOut.write_report();
 		}
@@ -281,7 +285,8 @@ public class AcoTsp {
     {
 	// TRACE ( System.out.println("SEARCH CONTROL AND STATISTICS\n"); );
 
-	if ((InOut.iteration % 100) == 0) {
+	if ((InOut.iteration % 100) == 0) 
+	{
 	    InOut.population_statistics();
 	    InOut.branching_factor = InOut.node_branching(InOut.lambda);
 	    System.out.println("best so far " + Ants.best_so_far_ant.tour_length + ", iteration: " + InOut.iteration
@@ -314,12 +319,12 @@ public class AcoTsp {
      * (SIDE)EFFECTS: all ants deposit Ants.pheromones on matrix "Ants.pheromone"
      */
     {
-	int k;
-
-	// TRACE ( System.out.println("Ant System Ants.pheromone deposit\n"); );
-
-	for (k = 0; k < Ants.n_ants; k++)
-	    Ants.global_update_pheromone(Ants.ant[k]);
+		int k;
+	
+		// TRACE ( System.out.println("Ant System Ants.pheromone deposit\n"); );
+	
+		for (k = 0; k < Ants.n_ants; k++)
+		    Ants.global_update_pheromone(Ants.ant[k]);
     }
 
     static void eas_update()
@@ -330,13 +335,13 @@ public class AcoTsp {
      * (SIDE)EFFECTS: all ants plus elitist ant deposit Ants.pheromones on matrix "Ants.pheromone"
      */
     {
-	int k;
-
-	// TRACE ( System.out.println("Elitist Ant System Ants.pheromone deposit\n"); );
-
-	for (k = 0; k < Ants.n_ants; k++)
-	    Ants.global_update_pheromone(Ants.ant[k]);
-	Ants.global_update_pheromone_weighted(Ants.best_so_far_ant, Ants.elitist_ants);
+		int k;
+	
+		// TRACE ( System.out.println("Elitist Ant System Ants.pheromone deposit\n"); );
+	
+		for (k = 0; k < Ants.n_ants; k++)
+		    Ants.global_update_pheromone(Ants.ant[k]);
+		Ants.global_update_pheromone_weighted(Ants.best_so_far_ant, Ants.elitist_ants);
     }
 
     static void ras_update()
@@ -489,57 +494,57 @@ public class AcoTsp {
 	 * Simulate the Ants.pheromone evaporation of all Ants.pheromones; this is not necessary
 	 * for ACS (see also ACO Book)
 	 */
-	if (Ants.as_flag || Ants.eas_flag || Ants.ras_flag || Ants.bwas_flag || Ants.mmas_flag) {
-	    if (LocalSearch.ls_flag != 0) {
-		if (Ants.mmas_flag)
-		    Ants.mmas_evaporation_nn_list();
-		else
-		    Ants.evaporation_nn_list();
+		if (Ants.as_flag || Ants.eas_flag || Ants.ras_flag || Ants.bwas_flag || Ants.mmas_flag) {
+		    if (LocalSearch.ls_flag != 0) {
+			if (Ants.mmas_flag)
+			    Ants.mmas_evaporation_nn_list();
+			else
+			    Ants.evaporation_nn_list();
+			/*
+			 * evaporate only Ants.pheromones on arcs of candidate list to make the
+			 * Ants.pheromone evaporation faster for being able to tackle large TSP
+			 * Tsp.instances. For MMAS additionally check lower Ants.pheromone trail limits.
+			 */
+		    } else {
+			/* if no local search is used, evaporate all Ants.pheromone trails */
+			Ants.evaporation();
+		    }
+		}
+	
+		/* Next, apply the Ants.pheromone deposit for the various ACO algorithms */
+		if (Ants.as_flag)
+		    as_update();
+		else if (Ants.eas_flag)
+		    eas_update();
+		else if (Ants.ras_flag)
+		    ras_update();
+		else if (Ants.mmas_flag)
+		    mmas_update();
+		else if (Ants.bwas_flag)
+		    bwas_update();
+		else if (Ants.acs_flag)
+		    acs_global_update();
+	
 		/*
-		 * evaporate only Ants.pheromones on arcs of candidate list to make the
-		 * Ants.pheromone evaporation faster for being able to tackle large TSP
-		 * Tsp.instances. For MMAS additionally check lower Ants.pheromone trail limits.
+		 * check Ants.pheromone trail limits for MMAS; not necessary if local
+		 * search is used, because in the local search case lower Ants.pheromone trail
+		 * limits are checked in procedure mmas_evaporation_nn_list
 		 */
-	    } else {
-		/* if no local search is used, evaporate all Ants.pheromone trails */
-		Ants.evaporation();
-	    }
-	}
-
-	/* Next, apply the Ants.pheromone deposit for the various ACO algorithms */
-	if (Ants.as_flag)
-	    as_update();
-	else if (Ants.eas_flag)
-	    eas_update();
-	else if (Ants.ras_flag)
-	    ras_update();
-	else if (Ants.mmas_flag)
-	    mmas_update();
-	else if (Ants.bwas_flag)
-	    bwas_update();
-	else if (Ants.acs_flag)
-	    acs_global_update();
-
-	/*
-	 * check Ants.pheromone trail limits for MMAS; not necessary if local
-	 * search is used, because in the local search case lower Ants.pheromone trail
-	 * limits are checked in procedure mmas_evaporation_nn_list
-	 */
-	if (Ants.mmas_flag && LocalSearch.ls_flag == 0)
-	    Ants.check_pheromone_trail_limits();
-
-	/*
-	 * Compute combined information Ants.pheromone times heuristic info after
-	 * the Ants.pheromone update for all ACO algorithms except ACS; in the ACS case
-	 * this is already done in the Ants.pheromone update procedures of ACS
-	 */
-	if (Ants.as_flag || Ants.eas_flag || Ants.ras_flag || Ants.mmas_flag || Ants.bwas_flag) {
-	    if (LocalSearch.ls_flag != 0) {
-		Ants.compute_nn_list_total_information();
-	    } else {
-		Ants.compute_total_information();
-	    }
-	}
+		if (Ants.mmas_flag && LocalSearch.ls_flag == 0)
+		    Ants.check_pheromone_trail_limits();
+	
+		/*
+		 * Compute combined information Ants.pheromone times heuristic info after
+		 * the Ants.pheromone update for all ACO algorithms except ACS; in the ACS case
+		 * this is already done in the Ants.pheromone update procedures of ACS
+		 */
+		if (Ants.as_flag || Ants.eas_flag || Ants.ras_flag || Ants.mmas_flag || Ants.bwas_flag) {
+		    if (LocalSearch.ls_flag != 0) {
+			Ants.compute_nn_list_total_information();
+		    } else {
+			Ants.compute_total_information();
+		    }
+		}
     }
 
     /* --- main program ------------------------------------------------------ */
@@ -553,7 +558,7 @@ public class AcoTsp {
     	
     	Timer.start_timers();//开始计时
 
-    	InOut.init_program(args);//初始化相关参数，并给出运行提示
+    	InOut.init_program_wargame(args);//初始化相关参数，并给出运行提示
 
     	Tsp.instance.nn_list = Tsp.compute_nn_lists();//计算最近的列表
     	Ants.pheromone = Utilities.generate_double_matrix(Tsp.n, Tsp.n);
