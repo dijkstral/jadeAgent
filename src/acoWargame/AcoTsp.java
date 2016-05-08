@@ -95,17 +95,10 @@ public class AcoTsp
     	int k;
 		int step;	
 		step = 0;
-		
-		for (k = 0; k < Ants.n_ants; k++) 
-		{
-		    Ants.ant_empty_memoryNew(Ants.ant_wargame[k]);
-		}
-		
 		for (k = 0; k < Ants.n_ants; k++)
 		{
-			//System.out.println("放置第"+k+"个蚂蚁:");
+			Ants.ant_empty_memoryNew(Ants.ant_wargame[k]);
 		    Ants.place_ant_wargameNew(Ants.ant_wargame[k]);
-		    //System.out.println(" ");
 		}
 		int bestAnt = 0;
 		File writename = new File("D:/Program Files (x86)/ants1.txt"); 
@@ -114,7 +107,7 @@ public class AcoTsp
         BufferedWriter out = new BufferedWriter(new FileWriter(writename,true)); //true 代表不覆盖前面内容
         out.write("***NEW***\r\n"); // \r\n即为换行  
         
-		while (step < 1500) 
+		while (step < Tsp.n-1) 
 		{
 			//System.out.println("计算点值：");
 			for (k = 0; k < Ants.n_ants; k++) 
@@ -122,7 +115,7 @@ public class AcoTsp
 				Ants.calcValueRiskPointNew(k);
 			}
 			//System.out.println("更新信息素：");
-			//Ants.global_update_pheromone_wargameNew();
+			Ants.global_update_pheromone_wargameNew();
 		    step++;
 		    //System.out.println("计算最优概率：");
 		    Ants.compute_total_information_wargameNew();
@@ -159,11 +152,11 @@ public class AcoTsp
 		    }   
 		    Ants.neighbour_choose_and_move_to_next_wargameNew();    
 		}
-		//bestAnt = Ants.find_best_wargame();
-		//System.out.println("当前最好的蚂蚁组合是第"+bestAnt+"只蚂蚁:	"+Ants.ant_wargame[bestAnt].valueNew+":	"+Ants.ant_wargame[bestAnt].riskNew);
+		bestAnt = Ants.find_best_wargame();
+		System.out.println("当前最好的蚂蚁组合是第"+bestAnt+"只蚂蚁:	"+Ants.ant_wargame[bestAnt].valueNew+":	"+Ants.ant_wargame[bestAnt].riskNew);
 		    
 		
-		out.close(); // 最后记得关	
+		//out.close(); // 最后记得关	
 		step = Tsp.n;		
 		InOut.n_tours += Ants.n_ants;
     }
@@ -663,31 +656,37 @@ public class AcoTsp
     {    	
     	Timer.start_timers();//开始计时
 
-    	try {
+    	try 
+    	{
 			InOut.init_program_wargame(args);
-		} catch (Exception e) {
-			// TODO Auto-generated catch block
+		} 
+    	catch (Exception e) 
+    	{
 			e.printStackTrace();
 		}
     	InOut.time_used = Timer.elapsed_time();
     	//System.out.println("Initialization took " + InOut.time_used + " seconds\n");
-   	
-    	for (InOut.n_try = 0; InOut.n_try < 100; InOut.n_try++) 
+    	for (InOut.n_try = 0; InOut.n_try < InOut.max_tries; InOut.n_try++) 
     	{
     	    {	    	    	
-    			try {
+    			try 
+    			{
 					construct_solutions_wargameNew();
-				} catch (IOException e) {
+				} 
+    			catch (IOException e) 
+    			{
 					// TODO Auto-generated catch block
 					e.printStackTrace();
 				}
+    			
     			Ants.evaporation_wargame();
     	    }
     	}
-    	System.out.println();
+    	
+    	/*System.out.println();
     	System.out.println(Ants.ant_wargame[Ants.find_best_wargame()].value);
     	for(int i=0;i<Ants.ant_wargame[Ants.find_best_wargame()].targets.length;i++)
-    		System.out.print(Ants.ant_wargame[Ants.find_best_wargame()].targets[i]);	
+    		System.out.print(Ants.ant_wargame[Ants.find_best_wargame()].targets[i]);*/	
      }
     
     

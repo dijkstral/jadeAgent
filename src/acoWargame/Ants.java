@@ -16,7 +16,6 @@ public class Ants {
 	public final static int MAXTARGETS = 15;
 	public final static int MAXSOLIDERS = 15;
 	public final static float SWITCHLINES = (float) 0.2;
-	public final static int RANGE = 2;
 	
     static class ant_struct 
     {
@@ -35,7 +34,6 @@ public class Ants {
     	double value;
     	//double[][] pherNew;
     	int[][] targetIn;
-    	int[][] targetInNew;
     	int valueNew = 0;
     	int riskNew = 0;
     }
@@ -305,22 +303,18 @@ public class Ants {
     {    	
     	int k_best = 1;
     	double tempHighestScore = 0;   
-    	int biggerValue = 0;
-    	int lessRisk = 0;
     	
     	for(int i=0;i<total_wargame.length;i++)
-    	//for(int i=0;i<n_ants;i++)
     	{
     		if(tempHighestScore<total_wargame[i])
     		{
     			k_best = i;
     			tempHighestScore = total_wargame[i];
     		}/*
-    		if(biggerValue<ant_wargame[i].valueNew&&lessRisk>ant_wargame[i].riskNew)
+    		if(tempHighestScore<ant_wargame[i].value)
     		{
     			k_best = i;
-    			biggerValue = ant_wargame[i].valueNew;
-    			lessRisk = ant_wargame[i].riskNew;
+    			tempHighestScore=ant_wargame[i].value;
     		}*/
     	}  
 
@@ -567,7 +561,7 @@ public class Ants {
 		double d_tau;		
 		for (int i = 0; i < n_ants; i++) 
 		{
-			d_tau = ant_wargame[i].valueNew*0.01+100/ant_wargame[i].riskNew;
+			d_tau = ant_wargame[i].valueNew*0.01;//+100/ant_wargame[i].riskNew;
 			ant_wargame[i].pher += d_tau;
 		}	
     }
@@ -639,7 +633,7 @@ public class Ants {
 		for (i = 0; i < n_ants; i++) 
 		{
 			//total_wargame[i] = Math.pow(ant_wargame[i].pher, alpha) * Math.pow(HEURISTIC_wargameNew(i), beta);
-			total_wargame[i] =  Math.pow(HEURISTIC_wargameNew(i),beta);
+			total_wargame[i] = Math.pow(HEURISTIC_wargameNew(i), beta);
 			
 		}
     }
@@ -1068,23 +1062,24 @@ public class Ants {
     		randomNumbers[i] = i;
     	
     	for(int i = 0; i<n_ants; i++)
-    	{
-	    	//System.out.print("µ±Ç°ÂìÒÏÊÇ£º");  		  		
+    	{	    	 		  		
     		if(i != bestMove)    			
     		{    			
     			int[] tempRN = randomNumbers.clone();
-    			for(int j=0;j<(int)SWITCHLINES*MAXSOLIDERS;j++)
-    			{
+    			for(int j=0;j<Math.ceil(SWITCHLINES*MAXSOLIDERS);j++)
+    			{    		
+    				//System.out.print(Math.ceil(SWITCHLINES*MAXSOLIDERS)); 		
     				int switchLine = tempRandom.nextInt(MAXSOLIDERS);
-    				while(tempRN[switchLine]==0)
+    				while(tempRN[switchLine]==MAXSOLIDERS)
     				{
-    					if(switchLine>=MAXSOLIDERS)
-    						switchLine = 0;
     					switchLine++;
+    					if(switchLine>=MAXSOLIDERS)
+    						switchLine = 0;    					
     				}
-    				ant_wargame[i].targetIn[switchLine] = ant_wargame[bestMove].targetIn[switchLine];
+    				ant_wargame[i].targetIn[tempRN[switchLine]] = ant_wargame[bestMove].targetIn[tempRN[switchLine]];
+    				tempRN[switchLine] = MAXSOLIDERS;
     			}
-    		}  
+    		}
        	} 
     	
     	int self = tempRandom.nextInt(MAXSOLIDERS);
@@ -1105,70 +1100,7 @@ public class Ants {
 	    		j=MAXTARGETS-1;
 	    	j--;
 	    	ant_wargame[bestMove].targetIn[self][j] = 1; 
-    	}  	
-    }    
-   
-    static void neighbour_choose_and_move_to_next_wargameNewNew()
-    {
-    	Random tempRandom = new Random();
-    	int[] randomNumbers = new int[MAXSOLIDERS];
-    	for(int i=0;i<MAXSOLIDERS;i++)
-    		randomNumbers[i] = i;
-    	
-    	for(int i = 0; i<n_ants; i++)
-    	{
-    		ant_wargame[i].targetInNew = ant_wargame[i].targetIn.clone();
-    		int bestMove = i;
-    		double tempTotal = 0;
-    		for(int j=i-RANGE;j<i+RANGE;j++)
-    		{
-    			if(j>=0&&j<n_ants)    				
-    			{
-    				if(tempTotal<total_wargame[j])
-    					bestMove = j;    					
-    			}
-    		}
-    		if(bestMove == i)
-    		{
-    			int self = tempRandom.nextInt(MAXSOLIDERS);
-    	    	ant_wargame[bestMove].targetInNew[self] = new int[MAXTARGETS];
-    	    	int randomCount = tempRandom.nextInt(MAXTARGETS*2);
-    	    	for(int k=0;k<1;k++)
-    	    	{
-    		    	int j=0;
-    		    	while(randomCount!=0)
-    		    	{
-    		    		if(j>=MAXTARGETS)
-    		    			j=0;
-    		    		if(targets[self][j]!=0)
-    		    			randomCount--;
-    		    		j++;	
-    		    	}
-    		    	if(j==0)
-    		    		j=MAXTARGETS-1;
-    		    	j--;
-    		    	ant_wargame[bestMove].targetInNew[self][j] = 1; 
-    	    	}  	
-    		}
-    		else
-    		{
-    			int[] tempRN = randomNumbers.clone();
-    			for(int j=0;j<(int)SWITCHLINES*MAXSOLIDERS;j++)
-    			{
-    				int switchLine = tempRandom.nextInt(MAXSOLIDERS);
-    				while(tempRN[switchLine]==0)
-    				{
-    					if(switchLine>=MAXSOLIDERS)
-    						switchLine = 0;
-    					switchLine++;
-    				}
-    				ant_wargame[i].targetInNew[switchLine] = ant_wargame[bestMove].targetInNew[switchLine];
-    				ant_wargame[bestMove].pher += 0.2;
-    			}   			
-    		} 
-       	} 
-    	for(int i=0;i<n_ants;i++)
-    		ant_wargame[i].targetIn = ant_wargame[i].targetInNew.clone();
+    	}   	
     }
     
     
