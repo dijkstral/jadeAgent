@@ -4,6 +4,7 @@ import java.io.BufferedReader;
 import java.io.BufferedWriter;
 import java.io.File;
 import java.io.FileInputStream;
+import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStreamReader;
@@ -351,7 +352,7 @@ public class InOut {
 		LocalSearch.ls_flag = 3; /* per default run 3-opt */
 		LocalSearch.dlb_flag = true; /* apply don't look bits in local search */
 		LocalSearch.nn_ls = 20; /* use fixed radius search in the 20 nearest neighbours */
-		Ants.n_ants = 25; /* number of ants */
+		Ants.n_ants = 150; /* number of ants */
 		Ants.nn_ants = 20; /* number of nearest neighbours in tour construction */
 		Ants.alpha = 1.0;
 		Ants.beta = 2.0;
@@ -386,7 +387,7 @@ public class InOut {
 	LocalSearch.ls_flag = 3; /* per default run 3-opt */
 	LocalSearch.dlb_flag = true; /* apply don't look bits in local search */
 	LocalSearch.nn_ls = 20; /* use fixed radius search in the 20 nearest neighbours */
-	Ants.n_ants = 25; /* number of ants */
+	Ants.n_ants = 5; /* number of ants */
 	Ants.nn_ants = 20; /* number of nearest neighbours in tour construction */
 	Ants.alpha = 1.0;
 	Ants.beta = 2.0;
@@ -597,9 +598,11 @@ public class InOut {
 	}
     }
     
-    static void init_program_wargame(String[] args)//--liuzhuan
+    static void init_program_wargame(String[] args) //--liuzhuan
     {
-		Tsp.instance_wargame = new problem_wargame();
+		Tsp.instance_wargame = new problem_wargame();	
+		
+		Tsp.instance = new problem();
 	
 		String temp_buffer;
 	
@@ -687,8 +690,9 @@ public class InOut {
 		if (comp_report != null)
 		    printToFile(comp_report, "begin problem " + name_buf);
 		System.out.println("allocate ants' memory ..");
-		//Ants.allocate_ants();
+		Ants.allocate_ants();	
 		Ants.allocate_ants_wargame();
+		Ants.total_wargame = new double[Ants.n_ants];
 		System.out.println(" .. done\n");
     }
     

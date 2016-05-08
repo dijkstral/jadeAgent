@@ -157,39 +157,46 @@ public class HostAgent
             setupUI();
 
             // add a Behaviour to handle messages from guests
-            addBehaviour( new CyclicBehaviour( this ) {
-                            public void action() {
-                                ACLMessage msg = receive();
-
-                                if (msg != null) {
-                                    if (HELLO.equals( msg.getContent() )) {
-                                        // a guest has arrived
-                                        m_guestCount++;
-                                        setPartyState( "Inviting guests (" + m_guestCount + " have arrived)" );
-
-                                        if (m_guestCount == m_guestList.size()) {
-                                            System.out.println( "All guests have arrived, starting conversation" );
-                                            // all guests have arrived
-                                            beginConversation();
-                                        }
-                                    }
-                                    else if (RUMOUR.equals( msg.getContent() )) {
-                                        // count the agents who have heard the rumour
-                                        incrementRumourCount();
-                                    }
-                                    else if (msg.getPerformative() == ACLMessage.REQUEST  &&  INTRODUCE.equals( msg.getContent() )) {
-                                        // an agent has requested an introduction
-                                        doIntroduction( msg.getSender() );
-                                    }
-                                }
-                                else {
-                                    // if no message is arrived, block the behaviour
-                                    block();
-                                }
+            addBehaviour( new CyclicBehaviour( this )
+            {
+            	public void action() 
+            	{
+            		ACLMessage msg = receive();
+            		if (msg != null) 
+            		{
+            			if (HELLO.equals( msg.getContent() )) 
+            			{
+            				// a guest has arrived
+            				m_guestCount++;
+            				setPartyState( "Inviting guests (" + m_guestCount + " have arrived)" );          				
+                            if (m_guestCount == m_guestList.size()) 
+                            {
+                            	System.out.println( "All guests have arrived, starting conversation" );
+                            	// all guests have arrived
+                            	beginConversation();
                             }
-                        } );
+                        }
+            			else if (RUMOUR.equals( msg.getContent() )) 
+            			{
+            				// count the agents who have heard the rumour
+            				incrementRumourCount();
+            			}
+            			else if (msg.getPerformative() == ACLMessage.REQUEST  &&  INTRODUCE.equals( msg.getContent() )) 
+            			{
+            				// an agent has requested an introduction
+            				doIntroduction( msg.getSender() );
+            			}
+            		}
+            		else 
+            		{
+            			// if no message is arrived, block the behaviour
+            			block();
+            		}
+            	}
+            } );
         }
-        catch (Exception e) {
+        catch (Exception e) 
+        {
             System.out.println( "Saw exception in HostAgent: " + e );
             e.printStackTrace();
         }
@@ -203,9 +210,9 @@ public class HostAgent
     /**
      * Setup the UI, which means creating and showing the main frame.
      */
-    private void setupUI() {
+    private void setupUI() 
+    {
         m_frame = new HostUIFrame( this );
-
         m_frame.setSize( 400, 200 );
         m_frame.setLocation( 400, 400 );
         m_frame.setVisible( true );
@@ -220,7 +227,8 @@ public class HostAgent
      *
      * @param nGuests The number of guest agents to invite.
      */
-    protected void inviteGuests( int nGuests ) {
+    protected void inviteGuests( int nGuests ) 
+    {
         // remove any old state
         m_guestList.clear();
         m_guestCount = 0;
@@ -235,15 +243,17 @@ public class HostAgent
         m_startTime = System.currentTimeMillis();
 
         setPartyState( "Inviting guests" );
-
-	PlatformController container = getContainerController(); // get a container controller for creating new agents
+        
+        PlatformController container = getContainerController(); // get a container controller for creating new agents
         // create N guest agents
-        try {
-            for (int i = 0;  i < nGuests;  i++) {
-                // create a new agent
-		String localName = "guest_"+i;
-		AgentController guest = container.createNewAgent(localName, "party.GuestAgent", null);
-		guest.start();
+        try 
+        {
+            for (int i = 0;  i < nGuests;  i++) 
+            {
+            	// create a new agent
+            	String localName = "guest_"+i;
+            	AgentController guest = container.createNewAgent(localName, "party.GuestAgent", null);
+            	guest.start();
                 //Agent guest = new GuestAgent();
                 //guest.doStart( "guest_" + i );
 
@@ -262,7 +272,8 @@ public class HostAgent
     /**
      * End the party: set the state variables, and tell all the guests to leave.
      */
-    protected void endParty() {
+    protected void endParty() 
+    {
         setPartyState( "Party over" );
         m_partyOver = true;
 
@@ -271,15 +282,13 @@ public class HostAgent
                             m_avgFormat.format( ((double) System.currentTimeMillis() - m_startTime) / 1000.0 ) + "s" );
 
         // send a message to all guests to tell them to leave
-        for (Iterator i = m_guestList.iterator();  i.hasNext();  ) {
+        for (Iterator i = m_guestList.iterator();  i.hasNext();  ) 
+        {
             ACLMessage msg = new ACLMessage( ACLMessage.INFORM );
             msg.setContent( GOODBYE );
-
             msg.addReceiver( (AID) i.next() );
-
             send(msg);
         }
-
         m_guestList.clear();
     }
 
@@ -288,9 +297,12 @@ public class HostAgent
      * Shut down the host agent, including removing the UI and deregistering
      * from the DF.
      */
-    protected void terminateHost() {
-        try {
-            if (!m_guestList.isEmpty()) {
+    protected void terminateHost() 
+    {
+        try 
+        {
+            if (!m_guestList.isEmpty()) 
+            {
                 endParty();
             }
 
@@ -309,7 +321,8 @@ public class HostAgent
      * Start the conversation in the party.  Tell a random guest a rumour, and
      * select two random guests and introduce them to each other.
      */
-    protected void beginConversation() {
+    protected void beginConversation() 
+    {
         // start a rumour
         ACLMessage rumour = new ACLMessage( ACLMessage.INFORM );
         rumour.setContent( RUMOUR );
@@ -326,8 +339,10 @@ public class HostAgent
      * Introduce guest0 to a random other guest.  Also updates the introduction
      * count on the UI, and the avg no of introductions per rumour.
      */
-    protected void doIntroduction( AID guest0 ) {
-        if (!m_partyOver) {
+    protected void doIntroduction( AID guest0 ) 
+    {
+        if (!m_partyOver) 
+        {
             AID guest1 = randomGuest( guest0 );
 
             // introduce two guests to each other
@@ -338,11 +353,13 @@ public class HostAgent
 
             // update the count of introductions on the UI
             m_introductionCount++;
-            SwingUtilities.invokeLater( new Runnable() {
-                                            public void run() {
-                                                ((HostUIFrame) m_frame).lbl_numIntroductions.setText( Integer.toString( m_introductionCount ));
-                                            }
-                                        } );
+            SwingUtilities.invokeLater( new Runnable() 
+            {
+            	public void run() 
+            	{
+            		((HostUIFrame) m_frame).lbl_numIntroductions.setText( Integer.toString( m_introductionCount ));
+            		}
+            	} );
             updateRumourAvg();
         }
     }
@@ -352,7 +369,8 @@ public class HostAgent
      * Increment the number of guests that have heard the rumour, and update the UI.
      * If all guests have heard the rumour, end the party.
      */
-    protected void incrementRumourCount() {
+    protected void incrementRumourCount() 
+    {
         m_rumourCount++;
         SwingUtilities.invokeLater( new Runnable() {
                                         public void run() {
@@ -362,14 +380,17 @@ public class HostAgent
         updateRumourAvg();
 
         // when all the guests have heard the rumour, the party ends
-        if (m_rumourCount == m_guestCount) {
-            // simulate the user clicking stop when the guests have all heard the rumour
+        if (m_rumourCount == m_guestCount) 
+        {
+        	// simulate the user clicking stop when the guests have all heard the rumour
             try {
-                SwingUtilities.invokeAndWait( new Runnable() {
-                                                public void run() {
-                                                    ((HostUIFrame) m_frame).btn_stop_actionPerformed( null );
-                                                }
-                                            } );
+                SwingUtilities.invokeAndWait( new Runnable() 
+                {
+                	public void run() 
+                	{
+                		((HostUIFrame) m_frame).btn_stop_actionPerformed( null );
+                	}
+                } );
             }
             catch (Exception e) {
                 e.printStackTrace();

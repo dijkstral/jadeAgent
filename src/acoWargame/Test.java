@@ -11,7 +11,7 @@ public class Test {
 
     private static List<String> argList = new LinkedList<String>();
 
-    public static void main(String[] args) {
+    public static void main_test(String[] args) {
 
 	// System.out.println(new File("").getAbsolutePath());
 
@@ -56,7 +56,7 @@ public class Test {
 
     private static void putTestParameters() {
 	argList.add("--ants");
-	argList.add("20");
+	argList.add("40");
 
 	//argList.add("--time");
 	//argList.add("2");

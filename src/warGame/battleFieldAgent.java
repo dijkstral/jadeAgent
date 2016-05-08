@@ -6,9 +6,10 @@ import java.util.Scanner;
 
 import jade.core.Agent;
 
+/**
+ * 环境智能体，负责提供战场环境等信息其他智能体
+ * */
 public class battleFieldAgent extends Agent{
-	/*环境智能体，负责提供战场环境等信息其他智能体*/
-
 	//private static final long serialVersionUID = 3588692493424615462L;
 	protected String[][] map;
 
@@ -23,21 +24,23 @@ public class battleFieldAgent extends Agent{
 			String height = str.trim();
 			String[] heights = height.split("[\\p{Space}]+");
 			map[count] = heights.clone();		
-		}
+		} 
 	}
 	
+	/**
+	 * 敌方算子数据初始化
+	 * 敌方算子内容：
+	 * 		算子编号GUID
+	 * 		算子名称enemyName
+	 * 		算子种类编号
+	 * 		算子武器编号
+	 * 		算子当前位置
+	 * 		算子装甲编号
+	 * 		算子侦查距离
+	 **/
 	public void initEnemyForce(String mapFilePath) throws FileNotFoundException
 	{
-		/*敌方算子数据初始化
-		 * 敌方算子内容：
-		 * 		算子编号GUID
-		 * 		算子名称enemyName
-		 * 		算子种类编号
-		 * 		算子武器编号
-		 * 		算子当前位置
-		 * 		算子装甲编号
-		 * 		算子侦查距离
-		 * 		*/
+
 		int count = 0;
 		Scanner in = new Scanner(new File(mapFilePath));
 		while(in.hasNextLine())
@@ -49,9 +52,11 @@ public class battleFieldAgent extends Agent{
 		}
 	}
 	
+	/**
+	 * 判断敌我双方算子是否可以通视
+	 * */
 	public boolean isTongshi()
 	{
-		/*判断敌我双方算子是否可以通视*/
 		return false;
 	}
 	

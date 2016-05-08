@@ -1,7 +1,10 @@
 package acoWargame;
 
 import java.io.BufferedWriter;
+import java.io.File;
+import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
+import java.io.FileWriter;
 import java.io.IOException;
 import java.io.OutputStreamWriter;
 import java.io.Writer;
@@ -15,7 +18,8 @@ import acoWargame.Ants.ant_struct_wargame;
  * It was initially ported from C to Java by Adrian Wilke.
  * 
  */
-public class AcoTsp {
+public class AcoTsp 
+{
     /*
      * ################################################
      * ########## ACO algorithms for the TSP ##########
@@ -36,7 +40,8 @@ public class AcoTsp {
      * (SIDE)EFFECTS: none
      */
     {
-    	return (((InOut.n_tours >= InOut.max_tours) && (Timer.elapsed_time() >= InOut.max_time)) || (Ants.best_so_far_ant.tour_length <= InOut.optimal));
+    	//return (((InOut.n_tours >= InOut.max_tours) && (Timer.elapsed_time() >= InOut.max_time)) || (Ants.best_so_far_ant.tour_length <= InOut.optimal));
+    	return (InOut.n_tours >= InOut.max_tours);        
     }
     
     static void construct_solutions_wargame()
@@ -47,26 +52,119 @@ public class AcoTsp {
 		step = 0;
 		/* Place the ants on same initial city */
 		for (k = 0; k < Ants.n_ants; k++)
+		{
+			//System.out.println("放置第"+k+"个蚂蚁:");
 		    Ants.place_ant_wargame(Ants.ant_wargame[k]);
+		    //System.out.println(" ");
+		}
 	
 		while (step < Tsp.n - 1) 
 		{
-		    step++;
-		    for (k = 0; k < Ants.n_ants; k++) 
-		    {
-				Ants.neighbour_choose_and_move_to_next_wargame(Ants.ant_wargame[k]);
+			//System.out.println("计算点值：");
+			for (k = 0; k < Ants.n_ants; k++) 
+			{
+				Ants.calc_value_point_wargame(k);
 			}
+			//System.out.println("更新信息素：");
+			Ants.global_update_pheromone_wargame();
+		    step++;
+		    //System.out.println("计算最优概率：");
+		    Ants.compute_total_information_wargame();
+		    
+	    	//System.out.println("当前最好的蚂蚁组合是第"+Ants.find_best_wargame()+"只蚂蚁:"+Ants.ant_wargame[Ants.find_best_wargame()].value);
+	    	//for(int i=0;i<Ants.ant_wargame[Ants.find_best_wargame()].targets.length;i++)
+	    		//System.out.print(Ants.ant_wargame[Ants.find_best_wargame()].targets[i]);	
+	    	//System.out.print("信息素:"+Ants.ant_wargame[Ants.find_best_wargame()].pher+"点值："+Ants.ant_wargame[Ants.find_best_wargame()].value);
+	    	//System.out.println(" ");
+	    	
+		   // System.out.println("开始移动：");		    
+		    Ants.neighbour_choose_and_move_to_next_wargame();
+		    
+		    int mark = 0;
+
 		}
 	
 		step = Tsp.n;
+
+		
+		InOut.n_tours += Ants.n_ants;
+    }
+    
+    static void construct_solutions_wargameNew() throws IOException
+    {
+    	int k;
+		int step;	
+		step = 0;
+		
 		for (k = 0; k < Ants.n_ants; k++) 
 		{
-		    Ants.ant[k].tour[Tsp.n] = Ants.ant[k].tour[0];
-		    Ants.ant[k].tour_length = Tsp.compute_tour_length(Ants.ant[k].tour);
-		    if (Ants.acs_flag)
-		    	Ants.local_acs_pheromone_update(Ants.ant[k], step);
+		    Ants.ant_empty_memoryNew(Ants.ant_wargame[k]);
 		}
 		
+		for (k = 0; k < Ants.n_ants; k++)
+		{
+			//System.out.println("放置第"+k+"个蚂蚁:");
+		    Ants.place_ant_wargameNew(Ants.ant_wargame[k]);
+		    //System.out.println(" ");
+		}
+		int bestAnt = 0;
+		File writename = new File("D:/Program Files (x86)/ants1.txt"); 
+		writename.delete();
+		writename.createNewFile();
+        BufferedWriter out = new BufferedWriter(new FileWriter(writename,true)); //true 代表不覆盖前面内容
+        out.write("***NEW***\r\n"); // \r\n即为换行  
+        
+		while (step < 1500) 
+		{
+			//System.out.println("计算点值：");
+			for (k = 0; k < Ants.n_ants; k++) 
+			{
+				Ants.calcValueRiskPointNew(k);
+			}
+			//System.out.println("更新信息素：");
+			//Ants.global_update_pheromone_wargameNew();
+		    step++;
+		    //System.out.println("计算最优概率：");
+		    Ants.compute_total_information_wargameNew();
+		    
+		    bestAnt = Ants.find_best_wargame();
+	    	//System.out.println("当前最好的蚂蚁组合是第"+bestAnt+"只蚂蚁:	"+Ants.ant_wargame[bestAnt].valueNew+":	"+Ants.ant_wargame[bestAnt].riskNew);
+		    
+		    //if(bestAnt != Ants.find_best_wargame())
+		    {
+		    	//bestAnt = Ants.find_best_wargame();
+		    	//System.out.println("当前最好的蚂蚁组合是第"+bestAnt+"只蚂蚁:	"+Ants.ant_wargame[bestAnt].valueNew+":	"+Ants.ant_wargame[bestAnt].riskNew);
+    	
+		    	try 
+	            {		    		 
+		            out.write(step+" "+Ants.ant_wargame[bestAnt].valueNew+" "+Ants.ant_wargame[bestAnt].riskNew+" "+bestAnt+"\r\n"); // \r\n即为换行  
+		            //out.write("step:"+step+"	第"+bestAnt+"只:	"+Ants.ant_wargame[bestAnt].valueNew+":"+Ants.ant_wargame[bestAnt].riskNew+"\r\n"); // \r\n即为换行  
+		            
+		           /* for(int i=0;i<Ants.MAXSOLIDERS;i++)
+		            {
+		            	for(int j=0;j<Ants.MAXTARGETS;j++)
+		            	{
+		            		out.write(Ants.ant_wargame[bestAnt].targetIn[i][j]+"	");
+		            	}
+		            	out.write("\r\n");
+		            }*/
+		            
+		            out.flush(); // 把缓存区内容压入文件  
+		            
+				} 
+	            catch (IOException e) 
+	            {
+					e.printStackTrace();
+				} // 创建新文件  
+		    }   
+		    Ants.neighbour_choose_and_move_to_next_wargameNew();    
+		}
+		//bestAnt = Ants.find_best_wargame();
+		//System.out.println("当前最好的蚂蚁组合是第"+bestAnt+"只蚂蚁:	"+Ants.ant_wargame[bestAnt].valueNew+":	"+Ants.ant_wargame[bestAnt].riskNew);
+		    
+		
+		out.close(); // 最后记得关	
+		step = Tsp.n;		
 		InOut.n_tours += Ants.n_ants;
     }
     
@@ -85,7 +183,8 @@ public class AcoTsp {
 		// TRACE ( System.out.println("construct solutions for all ants\n"); );
 	
 		/* Mark all cities as unvisited */
-		for (k = 0; k < Ants.n_ants; k++) {
+		for (k = 0; k < Ants.n_ants; k++) 
+		{
 		    Ants.ant_empty_memory(Ants.ant[k]);
 		}
 	
@@ -94,26 +193,35 @@ public class AcoTsp {
 		for (k = 0; k < Ants.n_ants; k++)
 		    Ants.place_ant(Ants.ant[k], step);
 	
-		while (step < Tsp.n - 1) {
+		while (step < Tsp.n - 1) 
+		{
+			/*
+			 * 当step小于Tsp.n时，代表蚂蚁没有将当前的城市遍历完成，需要继续
+			 */
 		    step++;
 		    for (k = 0; k < Ants.n_ants; k++) 
 		    {
+		    	/*
+		    	 * 每一只蚂蚁都需要选择并移动下一步，然后更新生物素
+		    	 */
 				Ants.neighbour_choose_and_move_to_next(Ants.ant[k], step);
 				if (Ants.acs_flag)
 				    Ants.local_acs_pheromone_update(Ants.ant[k], step);
 			}
 		}
+		
 	
 		step = Tsp.n;
 		for (k = 0; k < Ants.n_ants; k++) 
 		{
-		    Ants.ant[k].tour[Tsp.n] = Ants.ant[k].tour[0];
-		    Ants.ant[k].tour_length = Tsp.compute_tour_length(Ants.ant[k].tour);
+		    Ants.ant[k].tour[Tsp.n] = Ants.ant[k].tour[0];//将最后一步的城市的下一个移动目标置为第一个
+		    Ants.ant[k].tour_length = Tsp.compute_tour_length(Ants.ant[k].tour);//计算从头到尾的总距离
 		    if (Ants.acs_flag)
 		    	Ants.local_acs_pheromone_update(Ants.ant[k], step);
 		}
 		InOut.n_tours += Ants.n_ants;
     }
+
 
     static void init_try(int ntry)
     /*
@@ -293,18 +401,20 @@ public class AcoTsp {
 		    + ", time " + Timer.elapsed_time() + ", b_fac " + InOut.branching_factor);
 
 	    if (Ants.mmas_flag && (InOut.branching_factor < InOut.branch_fac)
-		    && (InOut.iteration - InOut.restart_found_best > 250)) {
+		    && (InOut.iteration - InOut.restart_found_best > 250)) 
+	    {
 		/*
+		 * 以下只适用于最大最小蚂蚁系统，在其他情况下没有启用
 		 * MAX-MIN Ant System was the first ACO algorithm to use
 		 * Ants.pheromone trail re-initialisation as implemented
 		 * here. Other ACO algorithms may also profit from this mechanism.
-		 */
-		System.out.println("INIT TRAILS!!!\n");
-		Ants.restart_best_ant.tour_length = Integer.MAX_VALUE;
-		Ants.init_pheromone_trails(Ants.trail_max);
-		Ants.compute_total_information();
-		InOut.restart_iteration = InOut.iteration;
-		InOut.restart_time = Timer.elapsed_time();
+			 */
+			System.out.println("INIT TRAILS!!!\n");
+			Ants.restart_best_ant.tour_length = Integer.MAX_VALUE;
+			Ants.init_pheromone_trails(Ants.trail_max);//初始化生物素矩阵
+			Ants.compute_total_information();//根据启发函数进行更新
+			InOut.restart_iteration = InOut.iteration;
+			InOut.restart_time = Timer.elapsed_time();
 	    }
 	    System.out.println("try " + InOut.n_try + " iteration " + InOut.iteration + ", b-fac "
 		    + InOut.branching_factor);
@@ -549,64 +659,65 @@ public class AcoTsp {
 
     /* --- main program ------------------------------------------------------ */
 
-    public static void main(String[] args) 
-    {
-    	for (String argument : args)
-    	{
-    	    System.out.println(argument);
-    	}
-    	
+    public static void main(String[] args)  
+    {    	
     	Timer.start_timers();//开始计时
 
-    	InOut.init_program_wargame(args);//初始化相关参数，并给出运行提示
-
-    	Tsp.instance.nn_list = Tsp.compute_nn_lists();//计算最近的列表
-    	Ants.pheromone = Utilities.generate_double_matrix(Tsp.n, Tsp.n);
-    	Ants.total = Utilities.generate_double_matrix(Tsp.n, Tsp.n);
-
-    	InOut.time_used = Timer.elapsed_time();
-    	System.out.println("Initialization took " + InOut.time_used + " seconds\n");
-
-    	for (InOut.n_try = 0; InOut.n_try < InOut.max_tries; InOut.n_try++) 
-    	{
-
-    	    init_try(InOut.n_try);
-
-    	    while (!termination_condition()) 
-    	    {	
-    			construct_solutions();
-    	
-    			if (LocalSearch.ls_flag > 0)
-    			    local_search();
-    	
-    			update_statistics();	
-    			pheromone_trail_update();	
-    			search_control_and_statistics();	
-    			InOut.iteration++;
-    	    }
-    	    
-    	    InOut.exit_try(InOut.n_try);
-    	}
-    	InOut.exit_program();
-
-    	// Added by AW
-    	int aw_best_tour_length = Utilities.best_of_vector(InOut.best_in_try, InOut.max_tries);
-    	String aw_best_tour = InOut.aw_best_tour_in_try[Utilities.aw_best_tour_index()];
     	try {
-    	    Writer w = new OutputStreamWriter(new FileOutputStream("tour." + Tsp.instance.name), "UTF8");
-    	    BufferedWriter out = new BufferedWriter(w);
-    	    out.write(aw_best_tour_length + "\n");
-    	    out.write(aw_best_tour);
-    	    out.close();
-    	} catch (IOException e) {
-    	    System.err.print("Could not write file tour." + Tsp.instance.name + " " + e.getMessage());
-    	    System.exit(1);
+			InOut.init_program_wargame(args);
+		} catch (Exception e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
+    	InOut.time_used = Timer.elapsed_time();
+    	//System.out.println("Initialization took " + InOut.time_used + " seconds\n");
+   	
+    	for (InOut.n_try = 0; InOut.n_try < 100; InOut.n_try++) 
+    	{
+    	    {	    	    	
+    			try {
+					construct_solutions_wargameNew();
+				} catch (IOException e) {
+					// TODO Auto-generated catch block
+					e.printStackTrace();
+				}
+    			Ants.evaporation_wargame();
+    	    }
     	}
     	System.out.println();
-    	System.out.println("Best tour:");
-    	System.out.println(aw_best_tour_length);
-    	System.out.println(aw_best_tour);
-        }
+    	System.out.println(Ants.ant_wargame[Ants.find_best_wargame()].value);
+    	for(int i=0;i<Ants.ant_wargame[Ants.find_best_wargame()].targets.length;i++)
+    		System.out.print(Ants.ant_wargame[Ants.find_best_wargame()].targets[i]);	
+     }
+    
+    
+    public static void mainOLD(String[] args) 
+    {    	
+    	Timer.start_timers();//开始计时
+
+    	try {
+			InOut.init_program_wargame(args);
+		} catch (Exception e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
+    	InOut.time_used = Timer.elapsed_time();
+    	//System.out.println("Initialization took " + InOut.time_used + " seconds\n");
+   	
+    	for (InOut.n_try = 0; InOut.n_try < InOut.max_tries; InOut.n_try++) 
+    	{
+    	    {	    	    	
+    			construct_solutions_wargame();
+    			Ants.evaporation_wargame();
+    	    }
+    	}
+    	System.out.println();
+    	System.out.println(Ants.ant_wargame[Ants.find_best_wargame()].value);
+    	for(int i=0;i<Ants.ant_wargame[Ants.find_best_wargame()].targets.length;i++)
+    		System.out.print(Ants.ant_wargame[Ants.find_best_wargame()].targets[i]);	
+     }
+    
+    
     
     public static void main_old(String[] args) {
 	/*

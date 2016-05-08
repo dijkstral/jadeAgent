@@ -1,6 +1,9 @@
 package acoWargame;
 
+import java.io.File;
+import java.io.FileNotFoundException;
 import java.util.Random;
+import java.util.Scanner;
 
 public class Ants {
     /*
@@ -10,6 +13,11 @@ public class Ants {
      * Purpose: implementation of procedures for ants' behaviour
      */
 
+	public final static int MAXTARGETS = 15;
+	public final static int MAXSOLIDERS = 15;
+	public final static float SWITCHLINES = (float) 0.2;
+	public final static int RANGE = 2;
+	
     static class ant_struct 
     {
 		int[] tour;
@@ -20,9 +28,21 @@ public class Ants {
     static class ant_struct_wargame//兵棋中蚂蚁的结构
     {
     	int[] targets;
+    	//int[] ant_soliders;
+    	//int[] ant_enemys;
+    	//int[] ant_collision;
     	double pher;
     	double value;
+    	//double[][] pherNew;
+    	int[][] targetIn;
+    	int[][] targetInNew;
+    	int valueNew = 0;
+    	int riskNew = 0;
     }
+        
+    static int[][] targets;//目标
+    static int[][] values;//点值
+    static int[][] risks;//风险
     
     public static int targets_wargame;//假定敌方目标数量
 
@@ -34,9 +54,11 @@ public class Ants {
     static ant_struct restart_best_ant;
     
     static ant_struct_wargame ant_wargame[];//蚂蚁存放
+    static int resultSummon[];//结果存放集
 
     static double pheromone[][];//设置二维数组，存放生物素，数组大小为城市数目x城市数目
-    static double total[][];//
+    static double total[][];//通过启发函数和生物素，获得对应的总的概率，通过查询对应的最大的概率，选择下一步的移动方向
+    static double total_wargame[];
     
     static double sumPoint = 0;//计算总共的点值--liuzhuan
 
@@ -81,30 +103,66 @@ public class Ants {
     	return (1.0 / ((double) Tsp.instance.distance[m][n] + 0.1));
     }
     
-    static double HEURISTIC_wargame(int m, int n) //兵棋启发函数
+    static double HEURISTIC_wargame(int m) 
     {
-    	return (1.0 / ((double) Tsp.instance.distance[m][n] + 0.1));
+    	/*
+    	 * 测试使用
+    	 * 和对差的大小成反比
+    	 * 对差越大，拟合率越小
+    	 * */
+    	return (ant_wargame[m].value*0.01 + 0.1);
     }
 
+    static double HEURISTIC_wargameNew(int m) 
+    {
+    	return (ant_wargame[m].valueNew*0.01 + 100/ant_wargame[m].riskNew);
+    	
+    }
+    
     public static final double EPSILON = 0.00000000000000000000000000000001;
     
     
-    static void init_pheromone_trails_wargame(double initial_trail)//初始化生物素--liuzhuan
-    {
+    static void init_pheromone_trails_wargame(double initial_trail) //初始化生物素--liuzhuan
+    {   
+    		
 		for(int i = 0;i<n_ants;i++)
+		{
 			ant_wargame[i].pher = initial_trail;
+			/*for(int j=0;j<MAXSOLIDERS;j++)
+			{
+				for(int k=0;k<MAXTARGETS;k++)
+				{
+					if(targets[j][k]!=0)
+						ant_wargame[i].pherNew[j][k] = initial_trail;//初始化蚂蚁自己携带的信息素列表
+				}
+			}*/
+			
+		}
+		total_wargame = new double[n_ants];
     }
     
-    static void allocate_ants_wargame()//初始化蚂蚁内存，分配基本参数--liuzhuan
+    static void allocate_ants_wargame() //初始化蚂蚁内存，分配基本参数--liuzhuan
     {
+    	System.out.println("allocate_ants_wargame");
     	ant_wargame = new ant_struct_wargame[n_ants];
 		for(int i = 0;i<n_ants;i++)
 		{
 			ant_wargame[i] = new ant_struct_wargame();
 			ant_wargame[i].value = -1;
 			ant_wargame[i].pher = 0;
-			ant_wargame[i].targets = new int[targets_wargame+1];
-		}		
+			ant_wargame[i].targets = new int[8];
+			//ant_wargame[i].pherNew = new double[MAXSOLIDERS][MAXTARGETS];//对信息素列表初始化
+			ant_wargame[i].targetIn = new int[MAXSOLIDERS][MAXTARGETS];//对当前所在的目标列表初始化
+		}
+		try 
+		{
+			initTargetsValuesRisksNew();
+		}
+		catch (FileNotFoundException e) 
+		{
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
     }
     
 
@@ -143,31 +201,139 @@ public class Ants {
 		}
     }
     
-    static double calc_value_point_wargame(int n)//计算第n只蚂蚁的点值--liuzhuan
+    static void calc_value_point_wargame(int n)//测试使用，计算第n只蚂蚁的对差点值--liuzhuan
     {
     	double point = 0;
     	int enemy[] = {1,2,3,4,5,6,7,8};
     	for(int i = 0; i < 8; i++)
     	{
-    		point += alpha*(ant_wargame[n].targets[i] - enemy[i]);
+    		//point += alpha*(ant_wargame[n].targets[i] - enemy[i]);
+    		double tempPoint = ant_wargame[n].targets[i] - enemy[i];
+    		if(tempPoint<0)
+    			point += 0;
+    		else if(tempPoint<1)
+    			point += 1;
+    		else if(tempPoint<5)
+    			point += 2;
+    		else if(tempPoint<7)
+    			point += 3;
+    		else
+    			point += 4; 		
+    		
+
+    		//point += (ant_wargame[n].targets[i] - enemy[i]);
     	}
-    	return point;
+    	ant_wargame[n].value = point;
+    	//System.out.print(n + ":");
+    	//for(int i=0;i<ant_wargame[n].targets.length;i++)
+    		//System.out.print(ant_wargame[n].targets[i]);
+    	//System.out.print(":"+point);
+    	//System.out.println(" ");
+    }
+    
+    
+    /**
+     * 对当前的组合计算其打击效果和风险
+     * 计算规则：
+     * 1，每个目标受到两个打击时，打击效果只计算最大的一个，另一个忽略
+     * 2，每个目标受到两个打击时，风险效果只计算最小的一个，另一个忽略
+     * 
+     * 程序复杂度过高，需要优化！
+     * */
+    static void calcValueRiskPointNew(int n)
+    {
+    	int value = 0;
+    	int risk = 0;
+    	for(int i=0;i<MAXSOLIDERS;i++)
+    	{
+			int maxValue = 0;
+			int maxRisk = 0;
+    		for(int j=0;j<MAXTARGETS;j++)
+    		{
+    			if(ant_wargame[n].targetIn[i][j]!=0)
+    			{
+    				if(!hasCount(n,i,j))
+    				{
+    					maxValue = values[i][j];
+    					for(int k=i+1;k<MAXSOLIDERS;k++)
+    					{
+    						if(ant_wargame[n].targetIn[k][j]!=0)
+    							if(maxValue<values[k][j])
+    								maxValue = values[k][j];
+    					}
+    				}
+    				if(!hasCount(n,i,j))
+    				{
+    					maxRisk = risks[i][j];
+    					for(int k=i+1;k<MAXSOLIDERS;k++)
+    					{
+    						if(ant_wargame[n].targetIn[k][j]!=0)
+    							if(maxRisk<risks[k][j])
+    								maxRisk = risks[k][j];
+    					}
+    				}
+    			}
+    			value +=maxValue;
+    			risk += maxRisk;
+    			maxValue = 0;
+    			maxRisk = 0;
+    		}
+    	}
+    	ant_wargame[n].valueNew = value;
+    	ant_wargame[n].riskNew = risk;
+    }
+    
+    /**
+     * 检查当前的是否已经被计数了
+     * */
+    static boolean hasCount(int n,int line,int row)
+    {
+    	int i;
+    	for(i=0;i<MAXSOLIDERS;i++)
+    	{
+    		if(ant_wargame[n].targetIn[i][row]==1)
+    			break;
+    	}
+    	if(line==i)
+    		return false;
+    	else 
+    		return true;
     }
     
     
     static int find_best_wargame()//查找当前最好的蚂蚁--liuzhuan
-    {
-    	int k_best = 0;
-    	double highestPoint = 0;
-    	for(int i = 0;i < n_ants; i++)
+    {    	
+    	int k_best = 1;
+    	double tempHighestScore = 0;   
+    	int biggerValue = 0;
+    	int lessRisk = 0;
+    	
+    	for(int i=0;i<total_wargame.length;i++)
+    	//for(int i=0;i<n_ants;i++)
     	{
-    		ant_wargame[i].value = calc_value_point_wargame(i);
+    		if(tempHighestScore<total_wargame[i])
+    		{
+    			k_best = i;
+    			tempHighestScore = total_wargame[i];
+    		}/*
+    		if(biggerValue<ant_wargame[i].valueNew&&lessRisk>ant_wargame[i].riskNew)
+    		{
+    			k_best = i;
+    			biggerValue = ant_wargame[i].valueNew;
+    			lessRisk = ant_wargame[i].riskNew;
+    		}*/
+    	}  
+
+    	double highestPoint = 0;
+    	/*for(int i = 0;i < n_ants; i++)
+    	{
+    		//ant_wargame[i].value = calc_value_point_wargame(i);
     		if(highestPoint <= ant_wargame[i].value)
     		{
     			k_best = i;
     			highestPoint = ant_wargame[i].value;
     		}
-    	}
+    	}*/
     	return k_best;
     }
 
@@ -236,8 +402,6 @@ public class Ants {
     {
 		int i, j;
 	
-		// TRACE ( System.out.println(" init trails with %.15f\n",initial_trail); );
-	
 		/* Initialize pheromone trails */
 		for (i = 0; i < Tsp.n; i++) 
 		{
@@ -251,6 +415,84 @@ public class Ants {
 		}
     }
     
+    /**
+     * 对字符串进行解析
+     * */
+	public static String[] splitStrNew(String str)
+	{
+		String childrenStr = str.trim();
+		String[] abc = childrenStr.split("[\\p{Space}]+");
+        /*String GUID = abc[0];
+        String str2 = abc[1];
+        System.out.println(str1);
+        System.out.println(str2);*/
+        return abc;	
+	}
+    
+    
+    
+    /**
+     * 从文本读入目标、风险、点值
+     * @throws FileNotFoundException 
+     * */
+    static int[][] readTxtFromFilesNew(String filePath) throws FileNotFoundException
+    {
+    	int[][] tempINT = new int[MAXSOLIDERS][MAXTARGETS];
+    	try{
+    
+	    	//int[][] tempINT = null;
+	    	/*for(int i=0;i<MAXSOLIDERS;i++)
+	    	{
+	    		for(int j=0;j<MAXTARGETS;j++)
+	    			tempINT[i][j] = 0;
+	    	}*/
+	    	Scanner in = new Scanner(new File(filePath));
+	    	int countLine = 0;
+	    	while(in.hasNextLine())
+			{				
+				String str = in.nextLine();
+				String[] targetsInfo = splitStrNew(str);
+				for(int i=0;i<targetsInfo.length;i++)
+				{
+					tempINT[countLine][i] = Integer.valueOf(targetsInfo[i]).intValue();
+				}
+				countLine++;		
+			}
+	    	
+    	}
+    	catch(FileNotFoundException e)
+		{
+			e.printStackTrace();
+		} 
+    	return tempINT;
+    }
+    
+    /**
+     * @throws FileNotFoundException 
+     * */    
+    static void initTargetsValuesRisksNew() throws FileNotFoundException
+    {
+	    	System.out.println("初始化Targets/Values/Risks");
+	/*    	for(int i=0;i<15;i++)
+	    		for(int j=0;j<15;j++)
+	    		{
+	    			targets[i][j] = 0;
+	    			values[i][j] = 0;
+	    			risks[i][j] = 0;
+	    		}  */
+	    	targets = new int[MAXSOLIDERS][MAXTARGETS];
+	    	values = new int[MAXSOLIDERS][MAXTARGETS];
+	    	risks = new int[MAXSOLIDERS][MAXTARGETS];
+	    	
+	    	targets = readTxtFromFilesNew("D:/Program Files (x86)/targets.txt");
+	    	values = readTxtFromFilesNew("D:/Program Files (x86)/values.txt");
+	    	risks = readTxtFromFilesNew("D:/Program Files (x86)/risks.txt");
+	    	//System.out.println(targets);
+	    	//System.out.println(values);
+	    	//System.out.println(risks);
+
+    }
+        
     static void evaporation_wargame()//--liuzhuan
     {
     	for(int i = 0;i < n_ants; i++)
@@ -258,7 +500,6 @@ public class Ants {
     		ant_wargame[i].pher *= (1 - rho);
     	}
     }
-
 
     static void evaporation()
     /*
@@ -306,6 +547,30 @@ public class Ants {
 		    }
 		}
     }
+    
+    static void global_update_pheromone_wargame()//对所有蚂蚁的信息素进行更新，和Value值成正比
+    {    	
+		double d_tau;		
+		for (int i = 0; i < n_ants; i++) 
+		{
+			d_tau = ant_wargame[i].value*0.01;
+			ant_wargame[i].pher += d_tau;
+		}	
+    }
+    
+    
+    /**
+     * 根据value和risk对当前蚂蚁进行信息素更新
+     * */
+    static void global_update_pheromone_wargameNew()//对所有蚂蚁的信息素进行更新，和Value值成正比
+    {    	
+		double d_tau;		
+		for (int i = 0; i < n_ants; i++) 
+		{
+			d_tau = ant_wargame[i].valueNew*0.01+100/ant_wargame[i].riskNew;
+			ant_wargame[i].pher += d_tau;
+		}	
+    }
 
     static void global_update_pheromone(ant_struct a)
     /*
@@ -345,11 +610,37 @@ public class Ants {
 		// TRACE ( System.out.println("global pheromone update weighted\n"); );
 	
 		d_tau = (double) weight / (double) a.tour_length;
-		for (i = 0; i < Tsp.n; i++) {
+		for (i = 0; i < Tsp.n; i++) 
+		{
 		    j = a.tour[i];
 		    h = a.tour[i + 1];
 		    pheromone[j][h] += d_tau;
 		    pheromone[h][j] = pheromone[j][h];
+		}
+    }
+    
+    static void compute_total_information_wargame()
+    /*
+     * 计算转移概率，由启发函数和生物素决定
+     */
+    {    	
+		int i;	
+		
+		for (i = 0; i < n_ants; i++) 
+		{
+			total_wargame[i] = Math.pow(ant_wargame[i].pher, alpha) * Math.pow(HEURISTIC_wargame(i), beta);
+		}
+    }
+    
+    static void compute_total_information_wargameNew()
+    {    	
+		int i;	
+		
+		for (i = 0; i < n_ants; i++) 
+		{
+			//total_wargame[i] = Math.pow(ant_wargame[i].pher, alpha) * Math.pow(HEURISTIC_wargameNew(i), beta);
+			total_wargame[i] =  Math.pow(HEURISTIC_wargameNew(i),beta);
+			
 		}
     }
 
@@ -420,7 +711,26 @@ public class Ants {
 		    a.visited[i] = false;
 		}
     }
-
+    
+    
+    /**
+     * 清空蚂蚁内容
+     * 包括targetIn
+     * */
+    static void ant_empty_memoryNew(ant_struct_wargame a)
+    {
+		int i;
+	
+		for (i = 0; i < MAXSOLIDERS; i++)
+		{
+		    a.targetIn[i] = new int[MAXTARGETS];
+		    a.pher = 0;
+		    a.value = 0;
+		    a.valueNew = 0;
+		    a.riskNew = 0;
+		}
+    }
+    
     static void place_ant(ant_struct a, int step)
     /*
      * FUNCTION: place an ant on a randomly chosen initial city
@@ -438,15 +748,57 @@ public class Ants {
     }
    
     static void place_ant_wargame(ant_struct_wargame a)//随机将八个目标放入对应的序列中--liuzhuan
-    {		
-		Random r = new Random();		
+    {	
+    	//System.out.println("place_ant_wargame");
+		Random r = new Random();	
+		int randomCount = 0;
+		//rnd = (int) (Utilities.ran01(Utilities.seed) * (double) 8);
+		int randomList[] = {1,2,3,4,5,6,7,8};
+		
 		for(int i = 0; i < 8; i++)
-			a.targets[i] = r.nextInt(8);
+		{
+			randomCount = r.nextInt(8);
+			while(randomList[randomCount]==0)
+				randomCount = r.nextInt(8);
+			a.targets[i] = randomList[randomCount];
+			randomList[randomCount] = 0;
+			//System.out.print(a.targets[i]);
+		}
+		
+    	/*for(int i=0;i<a.targets.length;i++)
+    		System.out.print(a.targets[i]);
+    	System.out.println(" ");*/
     }
+    /**
+     * 对每个己方算子选择一个目标，采用随机轮盘赌的方式
+     * */
+    static void place_ant_wargameNew(ant_struct_wargame a)
+    {	
+    	//System.out.println("place_ant_wargame");
+		Random r = new Random();	
+		for(int i=0;i<MAXSOLIDERS;i++)
+		{
+			int randomCount = r.nextInt(MAXTARGETS*2);
+			int j=0;
+			while(randomCount!=0)
+			{
+				if(j>=MAXTARGETS)
+					j=0;
+				if(targets[i][j]!=0)
+					randomCount--;
+				j++;	
+			}
+			if(j==0)
+				j=MAXTARGETS-1;
+			j--;
+			a.targetIn[i][j] = 1;
+		}
+    }
+    
     
     static void choose_best_next(ant_struct a, int phase)
     /*
-     * 选择与目前城市最大生物素的城市移动
+     * 选择与目前城市最大概率的城市移动
      * FUNCTION: chooses for an ant as the next city the one with
      * maximal value of heuristic information times pheromone
      * INPUT: pointer to ant and the construction step
@@ -467,7 +819,7 @@ public class Ants {
 		    	; /* city already visited, do nothing */
 		    else
 		    {
-		    	/*找到最大生物素，以及对应的城市*/
+		    	/*找到最大概率，以及对应的城市*/
 				if (total[current_city][city] > value_best) 
 				{
 				    next_city = city;
@@ -653,27 +1005,183 @@ public class Ants {
 		}
     }
 
-    static void neighbour_choose_and_move_to_next_wargame(ant_struct_wargame a)//--liuzhuan
-    {
-    	/*
-    	 * 第一步，
-    	 * 
-    	 * */
+    static void neighbour_choose_and_move_to_next_wargame()//--liuzhuan
+    {    	
     	Random tempRandom = new Random();
-    	int bestAnt = find_best_wargame();
+    	int bestMove = find_best_wargame();
+    	
     	for(int i = 0; i<n_ants; i++)
     	{
-    		if(i != bestAnt)
+	    	//System.out.print("当前蚂蚁是：");
+	    	//for(int j=0;j<Ants.ant_wargame[i].targets.length;j++)
+	    		//System.out.print(Ants.ant_wargame[i].targets[j]);	
+    		
+    		 /* 与最好的组合随机交换两个目标，进行变异*/
+    		if(i != bestMove)
     		{
     			int first = tempRandom.nextInt(8);
-    			int last= tempRandom.nextInt(8);
-    			while(first == last)
-    				last= tempRandom.nextInt(8);
+    			int second= tempRandom.nextInt(8);
+    			while(first == second)
+    				second= tempRandom.nextInt(8);
     			
-    			ant_wargame[i].targets[first] = ant_wargame[i].targets[first];
-    			ant_wargame[i].targets[last] = ant_wargame[i].targets[last];
-    		}  		
+    			int temp = ant_wargame[i].targets[first];
+    			ant_wargame[i].targets[first] = ant_wargame[bestMove].targets[first];
+    	    	for(int j=0;j<ant_wargame[i].targets.length;j++)
+    	    	{
+    	    		if(ant_wargame[i].targets[j]==ant_wargame[bestMove].targets[first]&&first!=j)
+    	    			ant_wargame[i].targets[j] = temp;
+    	    	}	 	
+    	    	
+    			temp = ant_wargame[i].targets[second];
+    			ant_wargame[i].targets[second] = ant_wargame[bestMove].targets[second];
+    	    	for(int j=0;j<ant_wargame[i].targets.length;j++)
+    	    	{
+    	    		if(ant_wargame[i].targets[j]==ant_wargame[bestMove].targets[second]&&second!=j)
+    	    			ant_wargame[i].targets[j] = temp;
+    	    	}
+    	    	
+    	    	//System.out.print("移动后蚂蚁是：");
+    	    	//for(int j=0;j<Ants.ant_wargame[i].targets.length;j++)
+    	    		//System.out.print(Ants.ant_wargame[i].targets[j]);
+    	    	    	    	
+    			/*
+    			 * 1 2 6 5 4 8 3 7
+    			 * 2 5 6 4 7 1 3 8 
+    			 * */
+    		}  
+    		//System.out.println(" ");
        	}
+    }
+    
+    /**
+     * 蚂蚁进行移动
+     * 移动规则如下：
+     * 1，采用轮盘赌的方式移动
+     * 2，随机交换10%的组合
+     * */
+    static void neighbour_choose_and_move_to_next_wargameNew()
+    {
+    	Random tempRandom = new Random();
+    	int bestMove = find_best_wargame();
+    	int[] randomNumbers = new int[MAXSOLIDERS];
+    	for(int i=0;i<MAXSOLIDERS;i++)
+    		randomNumbers[i] = i;
+    	
+    	for(int i = 0; i<n_ants; i++)
+    	{
+	    	//System.out.print("当前蚂蚁是：");  		  		
+    		if(i != bestMove)    			
+    		{    			
+    			int[] tempRN = randomNumbers.clone();
+    			for(int j=0;j<(int)SWITCHLINES*MAXSOLIDERS;j++)
+    			{
+    				int switchLine = tempRandom.nextInt(MAXSOLIDERS);
+    				while(tempRN[switchLine]==0)
+    				{
+    					if(switchLine>=MAXSOLIDERS)
+    						switchLine = 0;
+    					switchLine++;
+    				}
+    				ant_wargame[i].targetIn[switchLine] = ant_wargame[bestMove].targetIn[switchLine];
+    			}
+    		}  
+       	} 
+    	
+    	int self = tempRandom.nextInt(MAXSOLIDERS);
+    	ant_wargame[bestMove].targetIn[self] = new int[MAXTARGETS];
+    	int randomCount = tempRandom.nextInt(MAXTARGETS*2);
+    	for(int i=0;i<10;i++)
+    	{
+	    	int j=0;
+	    	while(randomCount!=0)
+	    	{
+	    		if(j>=MAXTARGETS)
+	    			j=0;
+	    		if(targets[self][j]!=0)
+	    			randomCount--;
+	    		j++;	
+	    	}
+	    	if(j==0)
+	    		j=MAXTARGETS-1;
+	    	j--;
+	    	ant_wargame[bestMove].targetIn[self][j] = 1; 
+    	}  	
+    }    
+   
+    static void neighbour_choose_and_move_to_next_wargameNewNew()
+    {
+    	Random tempRandom = new Random();
+    	int[] randomNumbers = new int[MAXSOLIDERS];
+    	for(int i=0;i<MAXSOLIDERS;i++)
+    		randomNumbers[i] = i;
+    	
+    	for(int i = 0; i<n_ants; i++)
+    	{
+    		ant_wargame[i].targetInNew = ant_wargame[i].targetIn.clone();
+    		int bestMove = i;
+    		double tempTotal = 0;
+    		for(int j=i-RANGE;j<i+RANGE;j++)
+    		{
+    			if(j>=0&&j<n_ants)    				
+    			{
+    				if(tempTotal<total_wargame[j])
+    					bestMove = j;    					
+    			}
+    		}
+    		if(bestMove == i)
+    		{
+    			int self = tempRandom.nextInt(MAXSOLIDERS);
+    	    	ant_wargame[bestMove].targetInNew[self] = new int[MAXTARGETS];
+    	    	int randomCount = tempRandom.nextInt(MAXTARGETS*2);
+    	    	for(int k=0;k<1;k++)
+    	    	{
+    		    	int j=0;
+    		    	while(randomCount!=0)
+    		    	{
+    		    		if(j>=MAXTARGETS)
+    		    			j=0;
+    		    		if(targets[self][j]!=0)
+    		    			randomCount--;
+    		    		j++;	
+    		    	}
+    		    	if(j==0)
+    		    		j=MAXTARGETS-1;
+    		    	j--;
+    		    	ant_wargame[bestMove].targetInNew[self][j] = 1; 
+    	    	}  	
+    		}
+    		else
+    		{
+    			int[] tempRN = randomNumbers.clone();
+    			for(int j=0;j<(int)SWITCHLINES*MAXSOLIDERS;j++)
+    			{
+    				int switchLine = tempRandom.nextInt(MAXSOLIDERS);
+    				while(tempRN[switchLine]==0)
+    				{
+    					if(switchLine>=MAXSOLIDERS)
+    						switchLine = 0;
+    					switchLine++;
+    				}
+    				ant_wargame[i].targetInNew[switchLine] = ant_wargame[bestMove].targetInNew[switchLine];
+    				ant_wargame[bestMove].pher += 0.2;
+    			}   			
+    		} 
+       	} 
+    	for(int i=0;i<n_ants;i++)
+    		ant_wargame[i].targetIn = ant_wargame[i].targetInNew.clone();
+    }
+    
+    
+    
+    static void swap_wargame(int num,int[] toBeSwap,int[] standar)//交换两个列表
+    {
+    	int temp = toBeSwap[num];
+    	toBeSwap[num] = standar[num];
+    	for(int i=0;i<toBeSwap.length;i++)
+    	{
+    		if(toBeSwap[i]==standar[num]&&num!=i)
+    			toBeSwap[i] = temp;
+    	}	 	
     }
     
     
